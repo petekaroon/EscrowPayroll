@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 
 import GushlyFactoryArtifact from '../contracts/GushlyFactory.json';
+import GushlyImplementationArtifact from '../contracts/GushlyImplementation.json';
 import contractAddress from '../contracts/contract-address.json';
 
 function Dapp() {
@@ -9,6 +10,10 @@ function Dapp() {
   const [employerContractList, setEmployerContractList] = useState([]); 
   const [employeeContractList, setEmployeeContractList] = useState([]); 
   const [employee, setEmployee] = useState(''); 
+  const [selectedContract, setSelectedContract] = useState(''); 
+  const [contractInUse, setContractInUse] = useState(''); 
+  const [contractEmployer, setContractEmployer] = useState(''); 
+
 
   useEffect(() => {
     loadPageContent();
@@ -16,6 +21,7 @@ function Dapp() {
     // Listen to Metamask account change and update page accordingly
     window.ethereum.on('accountsChanged', () => {
       stopPollingData();
+      clearData();
       loadPageContent();
     });
 
@@ -26,12 +32,12 @@ function Dapp() {
   let pollDataInterval;
   let currentUser;
   let gushlyFactory;
-
+  let gushlyImplementation;
 
   async function loadPageContent() {
     if (typeof window.ethereum !== 'undefined') {
       await requestAccount();
-      await initializeEthers();
+      await initializeEthersGushlyFactory();
       await getContracts();
     }
   }
@@ -45,6 +51,11 @@ function Dapp() {
     pollDataInterval = undefined;
   }
 
+  function clearData() {
+    setContractInUse('');
+    setContractEmployer('');
+  }
+
   // request access to the user's MetaMask account
   async function requestAccount() {
     const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
@@ -52,7 +63,7 @@ function Dapp() {
     setUserAddress(currentUser.toLowerCase());
   }
 
-  async function initializeEthers() {
+  async function initializeEthersGushlyFactory() {
     const provider = new ethers.providers.Web3Provider(window.ethereum);
     const contract = new ethers.Contract(
       contractAddress.GushlyFactory,
@@ -74,7 +85,7 @@ function Dapp() {
     event.preventDefault();
     if (typeof window.ethereum !== 'undefined') {
       await requestAccount();
-      await initializeEthers();
+      await initializeEthersGushlyFactory();
     }
 
     try {
@@ -99,7 +110,29 @@ function Dapp() {
     } catch (error) {
       console.log(error);
     }
-    
+  }
+
+  async function handleSetContractInUse(event) {
+    event.preventDefault();
+    await setContractInUse(selectedContract);
+    await initializeEthersGushlyImplementation();
+    await setSelectedContract('');
+    await getEmployer();
+  }
+
+  function initializeEthersGushlyImplementation() {
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const contract = new ethers.Contract(
+      selectedContract,
+      GushlyImplementationArtifact.abi,
+      provider.getSigner(0)
+    );
+    gushlyImplementation = contract;
+  }
+
+  async function getEmployer() {
+    const contractEmployer = await gushlyImplementation.getEmployer();
+    setContractEmployer(contractEmployer);
   }
 
   // ------------------------------------------------------------------
@@ -118,10 +151,19 @@ function Dapp() {
 
       <h3>Create New Contract</h3>
       <form onSubmit={handleCreateContract}>
-        <label>Employee:</label>
         <input type="text" onChange={event => setEmployee(event.target.value)} value={employee} placeholder="Employee Address"/>
         <input type="submit" value="Create New Contract" />
       </form>
+
+      <h3>Select Contract</h3>
+      <form onSubmit={handleSetContractInUse}>
+        <input type="text" onChange={event => setSelectedContract(event.target.value)} value={selectedContract} placeholder="Contract Address"/>
+        <input type="submit" value="Set Contract Address" />
+      </form>
+
+      <h2>Contract In Use: {contractInUse}</h2>
+
+      <p>Contract Employer: {contractEmployer}</p>
 
     </>
   )
