@@ -23,6 +23,7 @@ contract GushlyFactory {
     uint _hourlyRate,
     uint _projectRate
   ) external {
+    require(_employee != msg.sender);
     
     GushlyImplementation newContract = new GushlyImplementation(
       msg.sender,
