@@ -27,7 +27,6 @@ contract GushlyImplementation {
 
   Status internal contractStatus;
 
-
   constructor(address _employer, address _employee, uint _expiry, bool _payByHour,
     uint _hourlyRate, uint _projectRate) {
     employer = _employer;
@@ -150,11 +149,16 @@ contract GushlyImplementation {
       require(_claimApproved % claimHour == 0, 'Amount approved must be a multiple of hourly rate');
       claimHour -= (_claimApproved / hourlyRate);
       claimValue = claimHour * hourlyRate;
-    }
+      escrowBalance -= _claimApproved;
+      employeeBalance += _claimApproved;
+      totalPaid += _claimApproved;
 
-    escrowBalance -= _claimApproved;
-    employeeBalance += _claimApproved;
-    totalPaid += _claimApproved;
+    } else {
+      claimValue -= _claimApproved;
+      escrowBalance -= _claimApproved;
+      employeeBalance += _claimApproved;
+      totalPaid += _claimApproved;
+    }
   }
 
   function withdraw(uint _withdrawAmount) public onlyEmployee {
@@ -165,7 +169,7 @@ contract GushlyImplementation {
 
   function requestTermination() public onlyEmployer {
     contractStatus = getContractStatus();
-    require(contractStatus != Status.terminated);
+    require(contractStatus == Status.active);
     contractStatus = Status.pendingTermination;
   }
 
@@ -179,8 +183,9 @@ contract GushlyImplementation {
     contractStatus = getContractStatus();
     require(contractStatus == Status.terminated || contractStatus == Status.expired);
 
+    uint remainingAmount = escrowBalance;
     escrowBalance = 0;
-    payable(msg.sender).transfer(escrowBalance);
+    payable(msg.sender).transfer(remainingAmount);
   }
 
   function extendExpiry(uint _extension) public onlyEmployer {

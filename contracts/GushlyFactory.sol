@@ -7,8 +7,6 @@ import './GushlyImplementation.sol';
 contract GushlyFactory {
   address public admin;
 
-  // mapping(address => mapping(bool => GushlyImplementation[])) internal gushlyContracts; // true = employer, false = employee
-
   mapping(address => GushlyImplementation[]) internal gushlyEmployerContracts; // array of addresses
   mapping(address => GushlyImplementation[]) internal gushlyEmployeeContracts; // array of addresses
 
@@ -34,20 +32,9 @@ contract GushlyFactory {
       _projectRate
     );
 
-    // gushlyContracts[msg.sender][true].push(newContract);
-    // gushlyContracts[_employee][false].push(newContract);
-
     gushlyEmployerContracts[msg.sender].push(newContract);
     gushlyEmployeeContracts[_employee].push(newContract);
   }
-
-  // function getEmployerContracts() external view returns (GushlyImplementation[] memory) {
-  //   return gushlyContracts[msg.sender][true];
-  // }
-
-  // function getEmployeeContracts() external view returns (GushlyImplementation[] memory) {
-  //   return gushlyContracts[msg.sender][false];
-  // }
 
   function getEmployerContracts() external view returns (GushlyImplementation[] memory) {
     return gushlyEmployerContracts[msg.sender];
