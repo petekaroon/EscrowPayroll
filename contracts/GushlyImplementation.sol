@@ -64,45 +64,51 @@ contract GushlyImplementation {
     escrowBalance += msg.value;
   }
 
+  function depositFund() public payable {
+        contractStatus = getContractStatus();
+        require(contractStatus == Status.active || contractStatus == Status.pendingEmployeeSignature);
+        escrowBalance += msg.value;
+    }
+
   function signContract() public onlyEmployee {
     contractStatus = getContractStatus();
     require(contractStatus == Status.pendingEmployeeSignature);
     contractStatus = Status.active;
   }
 
-  function getEmployer() public view onlyEmployerOrEmployee returns (address) {
+  function getEmployer() external view onlyEmployerOrEmployee returns (address) {
     return employer;
   }
 
-  function getEmployee() public view onlyEmployerOrEmployee returns (address) {
+  function getEmployee() external view onlyEmployerOrEmployee returns (address) {
     return employee;
   }
 
-  function getEscrowBalance() public view onlyEmployerOrEmployee returns (uint) {
+  function getEscrowBalance() external view onlyEmployerOrEmployee returns (uint) {
     return escrowBalance;
   }
 
-  function getEmployeeBalance() public view onlyEmployee returns (uint) {
+  function getEmployeeBalance() external view onlyEmployee returns (uint) {
     return employeeBalance;
   }
 
-  function getTotalPaid() public view onlyEmployerOrEmployee returns (uint) {
+  function getTotalPaid() external view onlyEmployerOrEmployee returns (uint) {
     return totalPaid;
   }
 
-  function getExpiry() public view onlyEmployerOrEmployee returns (uint) {
+  function getExpiry() external view onlyEmployerOrEmployee returns (uint) {
     return expiry;
   }
 
-  function getPayByHour() public view onlyEmployerOrEmployee returns (bool) {
+  function getPayByHour() external view onlyEmployerOrEmployee returns (bool) {
     return payByHour;
   }
 
-  function getHourlyRate() public view onlyEmployerOrEmployee returns (uint) {
+  function getHourlyRate() external view onlyEmployerOrEmployee returns (uint) {
     return hourlyRate;
   }
 
-  function getProjectRate() public view onlyEmployerOrEmployee returns (uint) {
+  function getProjectRate() external view onlyEmployerOrEmployee returns (uint) {
     return projectRate;
   }
 
@@ -118,7 +124,7 @@ contract GushlyImplementation {
     }
   }
 
-  function getClaimHour() public view onlyEmployerOrEmployee returns (uint) {
+  function getClaimHour() external view onlyEmployerOrEmployee returns (uint) {
     return claimHour;
   }
 
